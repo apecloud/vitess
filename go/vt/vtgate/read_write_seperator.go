@@ -2,11 +2,15 @@ package vtgate
 
 import (
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
+	"vitess.io/vitess/go/vt/schema"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
-func suggestTabletType(inTransaction bool, sql string) (tabletType topodatapb.TabletType, err error) {
+func suggestTabletType(readWriteSeparationStrategy string, inTransaction bool, sql string) (tabletType topodatapb.TabletType, err error) {
 	suggestedTabletType := defaultTabletType
+	if schema.ReadWriteSeparationStrategy(readWriteSeparationStrategy) == schema.ReadWriteSeparationStrategyDisable {
+		return suggestedTabletType, nil
+	}
 	if inTransaction {
 		return suggestedTabletType, nil
 	}

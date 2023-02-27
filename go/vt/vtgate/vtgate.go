@@ -112,6 +112,9 @@ var (
 	queryLogBufferSize = 10
 
 	messageStreamGracePeriod = 30 * time.Second
+
+	// read write separation flags
+	defaultReadWriteSeparationStrategy = string(schema.ReadWriteSeparationStrategyDisable)
 )
 
 func registerFlags(fs *pflag.FlagSet) {
@@ -146,6 +149,7 @@ func registerFlags(fs *pflag.FlagSet) {
 	fs.IntVar(&queryLogBufferSize, "querylog-buffer-size", queryLogBufferSize, "Maximum number of buffered query logs before throttling log output")
 	fs.DurationVar(&messageStreamGracePeriod, "message_stream_grace_period", messageStreamGracePeriod, "the amount of time to give for a vttablet to resume if it ends a message stream, usually because of a reparent.")
 	fs.BoolVar(&enableViews, "enable-views", enableViews, "Enable views support in vtgate.")
+	fs.StringVar(&defaultReadWriteSeparationStrategy, "read_write_separation_strategy", defaultReadWriteSeparationStrategy, "Enable read write separation.")
 }
 func init() {
 	servenv.OnParseFor("vtgate", registerFlags)
@@ -252,6 +256,9 @@ func Init(
 
 	if _, err := schema.ParseDDLStrategy(defaultDDLStrategy); err != nil {
 		log.Fatalf("Invalid value for -ddl_strategy: %v", err.Error())
+	}
+	if _, err := schema.ParseReadWriteSeparationStrategy(defaultReadWriteSeparationStrategy); err != nil {
+		log.Fatalf("Invalid value for -read_write_separation_strategy: %v", err.Error())
 	}
 	tc := NewTxConn(gw, getTxMode())
 	// ScatterConn depends on TxConn to perform forced rollbacks.

@@ -82,6 +82,9 @@ var (
 	ReadAfterWriteTimeOut = SystemVariable{Name: "read_after_write_timeout"}
 	SessionTrackGTIDs     = SystemVariable{Name: "session_track_gtids", IdentifierAsString: true}
 
+	// Read Write Separation
+	ReadWriteSeparationStrategy = SystemVariable{Name: "read_write_separation_strategy", IdentifierAsString: true}
+
 	VitessAware = []SystemVariable{
 		Autocommit,
 		ClientFoundRows,
@@ -100,6 +103,7 @@ var (
 		ReadAfterWriteTimeOut,
 		SessionTrackGTIDs,
 		QueryTimeout,
+		ReadWriteSeparationStrategy,
 	}
 
 	ReadOnly = []SystemVariable{

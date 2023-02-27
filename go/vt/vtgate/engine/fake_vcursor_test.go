@@ -145,6 +145,14 @@ func (t *noopVCursor) GetDDLStrategy() string {
 	panic("implement me")
 }
 
+func (t *noopVCursor) SetReadWriteSeparationStrategy(strategy string) {
+	panic("implement me")
+}
+
+func (t *noopVCursor) GetReadWriteSeparationStrategy() string {
+	panic("implement me")
+}
+
 func (t *noopVCursor) GetSessionUUID() string {
 	panic("implement me")
 }

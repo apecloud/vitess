@@ -494,6 +494,15 @@ func (svss *SysVarSetAware) Execute(ctx context.Context, vcursor VCursor, env *e
 			return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.WrongValueForVar, "invalid DDL strategy: %s", str)
 		}
 		vcursor.Session().SetDDLStrategy(str)
+	case sysvars.ReadWriteSeparationStrategy.Name:
+		str, err := svss.evalAsString(env)
+		if err != nil {
+			return err
+		}
+		if _, err := schema.ParseReadWriteSeparationStrategy(str); err != nil {
+			return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.WrongValueForVar, "invalid Read Write Separation strategy: %s", str)
+		}
+		vcursor.Session().SetReadWriteSeparationStrategy(str)
 	case sysvars.QueryTimeout.Name:
 		queryTimeout, err := svss.evalAsInt64(env)
 		if err != nil {

@@ -150,6 +150,9 @@ type (
 		SetDDLStrategy(string)
 		GetDDLStrategy() string
 
+		SetReadWriteSeparationStrategy(string)
+		GetReadWriteSeparationStrategy() string
+
 		GetSessionUUID() string
 
 		SetSessionEnableSystemSettings(context.Context, bool) error

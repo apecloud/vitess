@@ -129,7 +129,7 @@ func newVCursorImpl(
 	pv plancontext.PlannerVersion,
 ) (*vcursorImpl, error) {
 	// use the suggestedTabletType if safeSession.TargetString is not specified
-	suggestedTabletType, err := suggestTabletType(safeSession.InTransaction(), sql)
+	suggestedTabletType, err := suggestTabletType(safeSession.GetReadWriteSeparationStrategy(), safeSession.InTransaction(), sql)
 	if err != nil {
 		return nil, err
 	}
@@ -872,6 +872,16 @@ func (vc *vcursorImpl) SetDDLStrategy(strategy string) {
 // GetDDLStrategy implements the SessionActions interface
 func (vc *vcursorImpl) GetDDLStrategy() string {
 	return vc.safeSession.GetDDLStrategy()
+}
+
+// SetReadWriteSeparationStrategy implements the SessionActions interface
+func (vc *vcursorImpl) SetReadWriteSeparationStrategy(strategy string) {
+	vc.safeSession.SetReadWriteSeparationStrategy(strategy)
+}
+
+// GetReadWriteSeparationStrategy implements the SessionActions interface
+func (vc *vcursorImpl) GetReadWriteSeparationStrategy() string {
+	return vc.safeSession.GetReadWriteSeparationStrategy()
 }
 
 // GetSessionUUID implements the SessionActions interface

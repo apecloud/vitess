@@ -131,7 +131,8 @@ func newVCursorImpl(
 	pv plancontext.PlannerVersion,
 ) (*vcursorImpl, error) {
 	// use the suggestedTabletType if safeSession.TargetString is not specified
-	suggestedTabletType, err := suggestTabletType(safeSession.GetReadWriteSeparationStrategy(), safeSession.InTransaction(), sql)
+	suggestedTabletType, err := suggestTabletType(safeSession.GetReadWriteSeparationStrategy(),
+		safeSession.InTransaction(), safeSession.GetOrCreateOptions().HasCreatedTempTables, sql)
 	if err != nil {
 		return nil, err
 	}

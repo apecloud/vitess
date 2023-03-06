@@ -6,12 +6,12 @@ import (
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
-func suggestTabletType(readWriteSeparationStrategy string, inTransaction bool, sql string) (tabletType topodatapb.TabletType, err error) {
+func suggestTabletType(readWriteSeparationStrategy string, inTransaction, hasCreatedTempTables bool, sql string) (tabletType topodatapb.TabletType, err error) {
 	suggestedTabletType := defaultTabletType
 	if schema.ReadWriteSeparationStrategy(readWriteSeparationStrategy) == schema.ReadWriteSeparationStrategyDisable {
 		return suggestedTabletType, nil
 	}
-	if inTransaction {
+	if inTransaction || hasCreatedTempTables {
 		return suggestedTabletType, nil
 	}
 	// if not in transaction, and the query is read-only, use REPLICA

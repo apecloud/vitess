@@ -252,6 +252,14 @@ func (svci *SysVarCheckAndIgnore) Execute(ctx context.Context, vcursor VCursor, 
 	if len(rss) != 1 {
 		return vterrors.Errorf(vtrpcpb.Code_INVALID_ARGUMENT, "Unexpected error, DestinationKeyspaceID mapping to multiple shards: %v", svci.TargetDestination)
 	}
+	//handle set default to vitess
+	switch svci.Name {
+	case sysvars.DDLStrategy.Name:
+		return vcursor.SetExec(ctx, svci.Name, strings.Replace(svci.Expr, "'", "", -1))
+	case sysvars.ReadWriteSeparationStrategy.Name:
+		return vcursor.SetExec(ctx, svci.Name, strings.Replace(svci.Expr, "'", "", -1))
+	}
+	//handle set global to mysql
 	checkSysVarQuery := fmt.Sprintf("select 1 from dual where @@%s = %s", svci.Name, svci.Expr)
 	result, err := execShard(ctx, nil, vcursor, checkSysVarQuery, env.BindVars, rss[0], false /* rollbackOnError */, false /* canAutocommit */)
 	if err != nil {

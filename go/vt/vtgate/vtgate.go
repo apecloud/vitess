@@ -652,3 +652,27 @@ func (vtg *VTGate) HandlePanic(err *error) {
 		errorCounts.Add([]string{"Panic", "Unknown", "Unknown", vtrpcpb.Code_INTERNAL.String()}, 1)
 	}
 }
+
+func SetDefaultDDLStrategy(strategy string) error {
+	//return error if strategy is empty
+	if strategy == "" {
+		return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.WrongValueForVar, "invalid DDL strategy: %s", strategy)
+	}
+	if _, err := schema.ParseDDLStrategy(strategy); err != nil {
+		return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.WrongValueForVar, "invalid DDL strategy: %s", strategy)
+	}
+	defaultDDLStrategy = strategy
+	return nil
+}
+
+func SetDefaultReadWriteSeparationStrategy(strategy string) error {
+	//return error if strategy is empty
+	if strategy == "" {
+		return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.WrongValueForVar, "invalid DDL strategy: %s", strategy)
+	}
+	if _, err := schema.ParseReadWriteSeparationStrategy(strategy); err != nil {
+		return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.WrongValueForVar, "invalid Read Write Separation strategy: %s", strategy)
+	}
+	defaultReadWriteSeparationStrategy = strategy
+	return nil
+}

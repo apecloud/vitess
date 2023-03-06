@@ -23,6 +23,8 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"vitess.io/vitess/go/vt/sysvars"
+
 	"vitess.io/vitess/go/vt/vtgate/logstats"
 
 	"vitess.io/vitess/go/vt/vtgate/planbuilder/plancontext"
@@ -1103,6 +1105,12 @@ func (vc *vcursorImpl) GetSrvVschema() *vschemapb.SrvVSchema {
 }
 
 func (vc *vcursorImpl) SetExec(ctx context.Context, name string, value string) error {
+	switch name {
+	case sysvars.DDLStrategy.Name:
+		return SetDefaultDDLStrategy(value)
+	case sysvars.ReadWriteSeparationStrategy.Name:
+		return SetDefaultReadWriteSeparationStrategy(value)
+	}
 	return vc.executor.setVitessMetadata(ctx, name, value)
 }
 

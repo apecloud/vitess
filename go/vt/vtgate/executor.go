@@ -986,6 +986,13 @@ func (e *Executor) getPlan(ctx context.Context, vcursor *vcursorImpl, sql string
 	vcursor.SetIgnoreMaxMemoryRows(ignoreMaxMemoryRows)
 	consolidator := sqlparser.Consolidator(stmt)
 	vcursor.SetConsolidator(consolidator)
+	tabletTypeFromHint := sqlparser.GetNodeType(statement)
+	if tabletTypeFromHint == topodatapb.TabletType_PRIMARY || tabletTypeFromHint == topodatapb.TabletType_REPLICA || tabletTypeFromHint == topodatapb.TabletType_RDONLY {
+		err := vcursor.SetTabletTypeFromHint(tabletTypeFromHint)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 
 	setVarComment, err := prepareSetVarComment(vcursor, stmt)
 	if err != nil {

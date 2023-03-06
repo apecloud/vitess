@@ -755,6 +755,18 @@ func (vc *vcursorImpl) TabletType() topodatapb.TabletType {
 	return vc.tabletType
 }
 
+// SetTabletTypeFromHint specifies the tablet type to use for the query.
+func (vc *vcursorImpl) SetTabletTypeFromHint(tabletType topodatapb.TabletType) error {
+	if tabletType == topodatapb.TabletType_PRIMARY || tabletType == topodatapb.TabletType_REPLICA || tabletType == topodatapb.TabletType_RDONLY {
+		if vc.safeSession.InTransaction() && tabletType != topodatapb.TabletType_PRIMARY {
+			return vterrors.NewErrorf(vtrpcpb.Code_INVALID_ARGUMENT, vterrors.LockOrActiveTransaction, "can't execute the given command because you have an active transaction")
+		}
+		vc.tabletType = tabletType
+		return nil
+	}
+	return vterrors.Errorf(vtrpcpb.Code_INVALID_ARGUMENT, "unsupported tablet type: %v", tabletType)
+}
+
 func commentedShardQueries(shardQueries []*querypb.BoundQuery, marginComments sqlparser.MarginComments) []*querypb.BoundQuery {
 	if marginComments.Leading == "" && marginComments.Trailing == "" {
 		return shardQueries

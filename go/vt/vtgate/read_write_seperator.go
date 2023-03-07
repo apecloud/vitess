@@ -4,6 +4,7 @@ import (
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/schema"
 	"vitess.io/vitess/go/vt/sqlparser"
+	"vitess.io/vitess/go/vt/vtgate/semantics"
 )
 
 func suggestTabletType(readWriteSeparationStrategy string, inTransaction, hasCreatedTempTables, hasAdvisoryLock bool, sql string) (tabletType topodatapb.TabletType, err error) {
@@ -39,5 +40,22 @@ func IsReadOnly(query string) (bool, error) {
 	if sqlparser.ContainsLockStatement(s) {
 		return false, nil
 	}
+	// if HasSystemTable
+	if HasSystemTable(s, "") {
+		return false, nil
+	}
 	return sqlparser.IsPureSelectStatement(s), nil
+}
+
+func HasSystemTable(sel sqlparser.Statement, ksName string) bool {
+	semTable, err := semantics.Analyze(sel, ksName, &semantics.FakeSI{})
+	if err != nil {
+		return false
+	}
+	for _, tableInfo := range semTable.Tables {
+		if tableInfo.IsInfSchema() {
+			return true
+		}
+	}
+	return false
 }

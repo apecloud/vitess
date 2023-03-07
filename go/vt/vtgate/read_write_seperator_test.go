@@ -291,6 +291,54 @@ func Test_suggestTabletType_force_primary(t *testing.T) {
 			wantTabletType: topodata.TabletType_PRIMARY,
 			wantErr:        assert.NoError,
 		},
+		{
+			name: "readWriteSeparationStrategy=enable, inTransaction=false, hasCreatedTempTables=false, hasAdvisoryLock=false",
+			args: args{
+				readWriteSeparationStrategy: "enable",
+				inTransaction:               false,
+				hasCreatedTempTables:        false,
+				hasAdvisoryLock:             false,
+				sql:                         "SELECT * from performance_schema.metadata_locks;",
+			},
+			wantTabletType: topodata.TabletType_PRIMARY,
+			wantErr:        assert.NoError,
+		},
+		{
+			name: "readWriteSeparationStrategy=enable, inTransaction=false, hasCreatedTempTables=false, hasAdvisoryLock=false",
+			args: args{
+				readWriteSeparationStrategy: "enable",
+				inTransaction:               false,
+				hasCreatedTempTables:        false,
+				hasAdvisoryLock:             false,
+				sql:                         "SELECT * from information_schema.innodb_trx;",
+			},
+			wantTabletType: topodata.TabletType_PRIMARY,
+			wantErr:        assert.NoError,
+		},
+		{
+			name: "readWriteSeparationStrategy=enable, inTransaction=false, hasCreatedTempTables=false, hasAdvisoryLock=false",
+			args: args{
+				readWriteSeparationStrategy: "enable",
+				inTransaction:               false,
+				hasCreatedTempTables:        false,
+				hasAdvisoryLock:             false,
+				sql:                         "SELECT * from mysql.user",
+			},
+			wantTabletType: topodata.TabletType_PRIMARY,
+			wantErr:        assert.NoError,
+		},
+		{
+			name: "readWriteSeparationStrategy=enable, inTransaction=false, hasCreatedTempTables=false, hasAdvisoryLock=false",
+			args: args{
+				readWriteSeparationStrategy: "enable",
+				inTransaction:               false,
+				hasCreatedTempTables:        false,
+				hasAdvisoryLock:             false,
+				sql:                         "SELECT * from sys.sys_config;",
+			},
+			wantTabletType: topodata.TabletType_PRIMARY,
+			wantErr:        assert.NoError,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

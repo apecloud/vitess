@@ -16,6 +16,65 @@ func IsPureSelectStatement(stmt Statement) bool {
 	return false
 }
 
+// ContainsLockStatement returns true if the query contains a Get Lock statement.
+func ContainsLockStatement(stmt Statement) bool {
+	switch stmt := stmt.(type) {
+	case *Select:
+		return isLockStatement(stmt)
+	case *Union:
+		return isLockStatement(stmt.Left) || isLockStatement(stmt.Right)
+	}
+
+	return false
+}
+
+// isLockStatement returns true if the query is a Get Lock statement.
+func isLockStatement(stmt Statement) bool {
+	if s, ok := stmt.(*Select); !ok {
+		return false
+	} else {
+		foundLastInsertId := false
+		err := Walk(func(node SQLNode) (kontinue bool, err error) {
+			switch node.(type) {
+			case *LockingFunc:
+				foundLastInsertId = true
+				return false, nil
+			}
+			return true, nil
+		}, s)
+		if err != nil {
+			return false
+		}
+		return foundLastInsertId
+	}
+}
+
+func hasFuncInStatement(funcs []string, stmt Statement) bool {
+	//return false if stmt is not a Select statement
+	if s, ok := stmt.(*Select); !ok {
+		return false
+	} else {
+		//visit the select statement and check if it is a Select Last Insert ID statement
+		foundLastInsertId := false
+		err := Walk(func(node SQLNode) (kontinue bool, err error) {
+			switch node := node.(type) {
+			case *FuncExpr:
+				for _, f := range funcs {
+					if node.Name.Lowered() == f {
+						foundLastInsertId = true
+						return false, nil
+					}
+				}
+			}
+			return true, nil
+		}, s)
+		if err != nil {
+			return false
+		}
+		return foundLastInsertId
+	}
+}
+
 // ContainsLastInsertIDStatement returns true if the query is a Select Last Insert ID statement.
 func ContainsLastInsertIDStatement(stmt Statement) bool {
 	switch stmt := stmt.(type) {
@@ -30,27 +89,7 @@ func ContainsLastInsertIDStatement(stmt Statement) bool {
 
 // IsSelectLastInsertIDStatement returns true if the query is a Select Last Insert ID statement.
 func isSelectLastInsertIDStatement(stmt Statement) bool {
-	//return false if stmt is not a Select statement
-	if s, ok := stmt.(*Select); !ok {
-		return false
-	} else {
-		//visit the select statement and check if it is a Select Last Insert ID statement
-		foundLastInsertId := false
-		err := Walk(func(node SQLNode) (kontinue bool, err error) {
-			switch node := node.(type) {
-			case *FuncExpr:
-				if node.Name.Lowered() == "last_insert_id" {
-					foundLastInsertId = true
-					return false, nil
-				}
-			}
-			return true, nil
-		}, s)
-		if err != nil {
-			return false
-		}
-		return foundLastInsertId
-	}
+	return hasFuncInStatement([]string{"last_insert_id"}, stmt)
 }
 
 // IsDDLStatement returns true if the query is an DDL statement.

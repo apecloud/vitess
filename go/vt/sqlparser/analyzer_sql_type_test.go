@@ -126,3 +126,29 @@ func _TestIsKillStatement(t *testing.T) {
 		}
 	}
 }
+
+func TestContainsLockStatement(t *testing.T) {
+	testcases := []struct {
+		sql  string
+		want bool
+	}{
+		{"select get_lock('aaa', 1000)", true},
+		{"select get_lock('aaa', 1000) union all select get_lock('bbb', 1000) ", true},
+		{"select release_lock('aaa')", true},
+		{"select IS_USED_LOCK('aaa')", true},
+		{"select IS_FREE_LOCK('aaa')", true},
+		{"select RELEASE_ALL_LOCKS()", true},
+		{"select /* get_lock('aaa', 1000) */ 1", false},
+		{"select database()", false},
+	}
+	for _, tcase := range testcases {
+		tree, err := Parse(tcase.sql)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		if got := ContainsLockStatement(tree); got != tcase.want {
+			t.Errorf("ContainsLockStatement(%s): %v, want %v", tcase.sql, got, tcase.want)
+		}
+	}
+}

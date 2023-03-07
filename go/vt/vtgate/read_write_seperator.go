@@ -6,12 +6,12 @@ import (
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
-func suggestTabletType(readWriteSeparationStrategy string, inTransaction, hasCreatedTempTables bool, sql string) (tabletType topodatapb.TabletType, err error) {
+func suggestTabletType(readWriteSeparationStrategy string, inTransaction, hasCreatedTempTables, hasAdvisoryLock bool, sql string) (tabletType topodatapb.TabletType, err error) {
 	suggestedTabletType := defaultTabletType
 	if schema.ReadWriteSeparationStrategy(readWriteSeparationStrategy) == schema.ReadWriteSeparationStrategyDisable {
 		return suggestedTabletType, nil
 	}
-	if inTransaction || hasCreatedTempTables {
+	if inTransaction || hasCreatedTempTables || hasAdvisoryLock {
 		return suggestedTabletType, nil
 	}
 	// if not in transaction, and the query is read-only, use REPLICA
@@ -35,9 +35,9 @@ func IsReadOnly(query string) (bool, error) {
 	if sqlparser.ContainsLastInsertIDStatement(s) {
 		return false, nil
 	}
+	// GET_LOCK/RELEASE_LOCK/IS_USED_LOCK/RELEASE_ALL_LOCKS is a special case, it's not a read-only query
+	if sqlparser.ContainsLockStatement(s) {
+		return false, nil
+	}
 	return sqlparser.IsPureSelectStatement(s), nil
-}
-
-func IsReadOnlyStmt(stmt sqlparser.Statement) (bool, error) {
-	return sqlparser.IsPureSelectStatement(stmt), nil
 }

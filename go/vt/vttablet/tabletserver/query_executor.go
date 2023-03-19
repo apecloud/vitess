@@ -60,6 +60,7 @@ type QueryExecutor struct {
 	ctx            context.Context
 	logStats       *tabletenv.LogStats
 	tsv            *TabletServer
+	keyspace       string
 	tabletType     topodatapb.TabletType
 	setting        *pools.Setting
 }
@@ -632,7 +633,7 @@ func (qre *QueryExecutor) execDDL(conn *StatefulConnection) (*sqltypes.Result, e
 		// Parsing is successful.
 		if !onlineDDL.Strategy.IsDirect() {
 			// This is an online DDL.
-			return qre.tsv.onlineDDLExecutor.SubmitMigration(qre.ctx, qre.plan.FullStmt)
+			return qre.tsv.onlineDDLExecutor.SubmitMigration(qre.ctx, qre.plan.FullStmt, qre.keyspace)
 		}
 	}
 
@@ -1048,7 +1049,7 @@ func (qre *QueryExecutor) execRevertMigration() (*sqltypes.Result, error) {
 	if _, ok := qre.plan.FullStmt.(*sqlparser.RevertMigration); !ok {
 		return nil, vterrors.New(vtrpcpb.Code_INTERNAL, "Expecting REVERT VITESS_MIGRATION plan")
 	}
-	return qre.tsv.onlineDDLExecutor.SubmitMigration(qre.ctx, qre.plan.FullStmt)
+	return qre.tsv.onlineDDLExecutor.SubmitMigration(qre.ctx, qre.plan.FullStmt, qre.keyspace)
 }
 
 func (qre *QueryExecutor) execShowMigrationLogs() (*sqltypes.Result, error) {

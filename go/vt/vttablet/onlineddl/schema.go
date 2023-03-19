@@ -335,7 +335,8 @@ const (
 	sqlSelectUncollectedArtifacts = `SELECT
 			migration_uuid,
 			artifacts,
-			log_path
+			log_path,
+			mysql_schema
 		FROM _vt.schema_migrations
 		WHERE
 			migration_status IN ('complete', 'failed')

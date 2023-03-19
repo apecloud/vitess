@@ -34,6 +34,8 @@ import (
 	"syscall"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/spf13/pflag"
 
 	"google.golang.org/protobuf/proto"
@@ -712,7 +714,7 @@ func (e *Executor) primaryPosition(ctx context.Context) (pos mysql.Position, err
 }
 
 // terminateVReplMigration stops vreplication, then removes the _vt.vreplication entry for the given migration
-func (e *Executor) terminateVReplMigration(ctx context.Context, uuid string) error {
+func (e *Executor) terminateVReplMigration(ctx context.Context, uuid string, onlineDDL *schema.OnlineDDL) error {
 	tmClient := e.tabletManagerClient()
 	defer tmClient.Close()
 
@@ -721,7 +723,7 @@ func (e *Executor) terminateVReplMigration(ctx context.Context, uuid string) err
 		return err
 	}
 	query, err := sqlparser.ParseAndBind(sqlStopVReplStream,
-		sqltypes.StringBindVariable(e.dbName),
+		sqltypes.StringBindVariable(e.GetDbName(onlineDDL.Keyspace)),
 		sqltypes.StringBindVariable(uuid),
 	)
 	if err != nil {
@@ -732,7 +734,7 @@ func (e *Executor) terminateVReplMigration(ctx context.Context, uuid string) err
 		log.Errorf("FAIL vreplicationExec: uuid=%s, query=%v, error=%v", uuid, query, err)
 	}
 
-	if err := e.deleteVReplicationEntry(ctx, uuid); err != nil {
+	if err := e.deleteVReplicationEntry(ctx, uuid, e.GetDbName(onlineDDL.Keyspace)); err != nil {
 		return err
 	}
 	return nil
@@ -1268,7 +1270,7 @@ func (e *Executor) initVreplicationOriginalMigration(ctx context.Context, online
 			}
 		}
 	}
-	v = NewVRepl(onlineDDL.UUID, e.keyspace, e.shard, e.dbName, onlineDDL.Table, vreplTableName, onlineDDL.SQL)
+	v = NewVRepl(onlineDDL.UUID, e.GetKeyspace(onlineDDL.Keyspace), e.shard, e.GetDbName(onlineDDL.Keyspace), onlineDDL.Table, vreplTableName, onlineDDL.SQL)
 	return v, nil
 }
 
@@ -1322,7 +1324,7 @@ func (e *Executor) initVreplicationRevertMigration(ctx context.Context, onlineDD
 	if err := e.updateArtifacts(ctx, onlineDDL.UUID, vreplTableName); err != nil {
 		return v, err
 	}
-	v = NewVRepl(onlineDDL.UUID, e.keyspace, e.shard, e.dbName, onlineDDL.Table, vreplTableName, "")
+	v = NewVRepl(onlineDDL.UUID, e.GetKeyspace(onlineDDL.Keyspace), e.shard, e.GetDbName(onlineDDL.Keyspace), onlineDDL.Table, vreplTableName, "")
 	v.pos = revertStream.pos
 	return v, nil
 }
@@ -1330,7 +1332,7 @@ func (e *Executor) initVreplicationRevertMigration(ctx context.Context, onlineDD
 // ExecuteWithVReplication sets up the grounds for a vreplication schema migration
 func (e *Executor) ExecuteWithVReplication(ctx context.Context, onlineDDL *schema.OnlineDDL, revertMigration *schema.OnlineDDL) error {
 	// make sure there's no vreplication workflow running under same name
-	_ = e.terminateVReplMigration(ctx, onlineDDL.UUID)
+	_ = e.terminateVReplMigration(ctx, onlineDDL.UUID, onlineDDL)
 
 	if conflictFound, conflictingMigration := e.isAnyConflictingMigrationRunning(onlineDDL); conflictFound {
 		return vterrors.Wrapf(ErrExecutorMigrationAlreadyRunning, "conflicting migration: %v over table: %v", conflictingMigration.UUID, conflictingMigration.Table)
@@ -1587,7 +1589,7 @@ exit $exit_code
 			fmt.Sprintf("--hooks-path=%s", tempDir),
 			fmt.Sprintf(`--hooks-hint-token=%s`, onlineDDL.UUID),
 			fmt.Sprintf(`--throttle-http=http://localhost:%d/throttler/check?app=%s:gh-ost:%s&p=low`, servenv.Port(), throttlerOnlineDDLApp, onlineDDL.UUID),
-			fmt.Sprintf(`--database=%s`, e.dbName),
+			fmt.Sprintf(`--database=%s`, e.GetDbName(onlineDDL.Keyspace)),
 			fmt.Sprintf(`--table=%s`, onlineDDL.Table),
 			fmt.Sprintf(`--alter=%s`, alterOptions),
 			fmt.Sprintf(`--panic-flag-file=%s`, e.ghostPanicFlagFileName(onlineDDL.UUID)),
@@ -1823,9 +1825,9 @@ export MYSQL_PWD
 			`--alter`,
 			alterOptions,
 			`--check-slave-lag`, // We use primary's identity so that pt-online-schema-change calls our lag plugin for exactly 1 server
-			fmt.Sprintf(`h=%s,P=%d,D=%s,t=%s,u=%s`, variables.host, variables.port, e.dbName, onlineDDL.Table, onlineDDLUser),
+			fmt.Sprintf(`h=%s,P=%d,D=%s,t=%s,u=%s`, variables.host, variables.port, e.GetDbName(onlineDDL.Keyspace), onlineDDL.Table, onlineDDLUser),
 			executeFlag,
-			fmt.Sprintf(`h=%s,P=%d,D=%s,t=%s,u=%s`, variables.host, variables.port, e.dbName, onlineDDL.Table, onlineDDLUser),
+			fmt.Sprintf(`h=%s,P=%d,D=%s,t=%s,u=%s`, variables.host, variables.port, e.GetDbName(onlineDDL.Keyspace), onlineDDL.Table, onlineDDLUser),
 		}
 
 		if execute {
@@ -1938,7 +1940,7 @@ func (e *Executor) terminateMigration(ctx context.Context, onlineDDL *schema.Onl
 		// migration could have started by a different tablet. We need to actively verify if it is running
 		s, _ := e.readVReplStream(ctx, onlineDDL.UUID, true)
 		foundRunning = (s != nil && s.isRunning())
-		if err := e.terminateVReplMigration(ctx, onlineDDL.UUID); err != nil {
+		if err := e.terminateVReplMigration(ctx, onlineDDL.UUID, onlineDDL); err != nil {
 			return foundRunning, fmt.Errorf("Error terminating migration, vreplication exec error: %+v", err)
 		}
 	case schema.DDLStrategyPTOSC:
@@ -2382,14 +2384,14 @@ func (e *Executor) validateMigrationRevertible(ctx context.Context, revertMigrat
 			table := row["mysql_table"].ToString()
 			status := schema.OnlineDDLStatus(row["migration_status"].ToString())
 
-			if keyspace == e.keyspace && table == revertMigration.Table {
+			if keyspace == e.GetKeyspace(revertMigration.Keyspace) && table == revertMigration.Table {
 				return fmt.Errorf("can not revert migration %s on table %s because migration %s is in %s status. May only revert if all migrations on this table are completed or failed", revertMigration.UUID, revertMigration.Table, pendingUUID, status)
 			}
 		}
 		{
 			// Validation: see that we're reverting the last successful migration on this table:
 			query, err := sqlparser.ParseAndBind(sqlSelectCompleteMigrationsOnTable,
-				sqltypes.StringBindVariable(e.keyspace),
+				sqltypes.StringBindVariable(e.GetKeyspace(revertMigration.Keyspace)),
 				sqltypes.StringBindVariable(revertMigration.Table),
 			)
 			if err != nil {
@@ -2631,7 +2633,7 @@ func (e *Executor) getCompletedMigrationByContextAndSQL(ctx context.Context, onl
 		return "", nil
 	}
 	query, err := sqlparser.ParseAndBind(sqlSelectCompleteMigrationsByContextAndSQL,
-		sqltypes.StringBindVariable(e.keyspace),
+		sqltypes.StringBindVariable(e.GetKeyspace(onlineDDL.Keyspace)),
 		sqltypes.StringBindVariable(onlineDDL.MigrationContext),
 		sqltypes.StringBindVariable(onlineDDL.SQL),
 	)
@@ -3803,9 +3805,9 @@ func (e *Executor) reloadSchema(ctx context.Context) error {
 
 // deleteVReplicationEntry cleans up a _vt.vreplication entry; this function is called as part of
 // migration termination and as part of artifact cleanup
-func (e *Executor) deleteVReplicationEntry(ctx context.Context, uuid string) error {
+func (e *Executor) deleteVReplicationEntry(ctx context.Context, uuid string, dbname string) error {
 	query, err := sqlparser.ParseAndBind(sqlDeleteVReplStream,
-		sqltypes.StringBindVariable(e.dbName),
+		sqltypes.StringBindVariable(e.GetDbName(dbname)),
 		sqltypes.StringBindVariable(uuid),
 	)
 	if err != nil {
@@ -3867,6 +3869,7 @@ func (e *Executor) gcArtifacts(ctx context.Context) error {
 		uuid := row["migration_uuid"].ToString()
 		artifacts := row["artifacts"].ToString()
 		logPath := row["log_path"].ToString()
+		mysqlSchema := row["mysql_schema"].ToString()
 
 		log.Infof("Executor.gcArtifacts: will GC artifacts for migration %s", uuid)
 		// Remove tables:
@@ -3898,7 +3901,7 @@ func (e *Executor) gcArtifacts(ctx context.Context) error {
 
 		// while the next function only applies to 'online' strategy ALTER and REVERT, there is no
 		// harm in invoking it for other migrations.
-		if err := e.deleteVReplicationEntry(ctx, uuid); err != nil {
+		if err := e.deleteVReplicationEntry(ctx, uuid, mysqlSchema); err != nil {
 			return err
 		}
 
@@ -4648,6 +4651,7 @@ func (e *Executor) submitCallbackIfNonConflicting(
 func (e *Executor) SubmitMigration(
 	ctx context.Context,
 	stmt sqlparser.Statement,
+	keyspace string,
 ) (*sqltypes.Result, error) {
 	if atomic.LoadInt64(&e.isOpen) == 0 {
 		return nil, vterrors.New(vtrpcpb.Code_FAILED_PRECONDITION, "online ddl is disabled")
@@ -4709,9 +4713,9 @@ func (e *Executor) SubmitMigration(
 	_, allowConcurrentMigration := e.allowConcurrentMigration(onlineDDL)
 	submitQuery, err := sqlparser.ParseAndBind(sqlInsertMigration,
 		sqltypes.StringBindVariable(onlineDDL.UUID),
-		sqltypes.StringBindVariable(e.keyspace),
+		sqltypes.StringBindVariable(e.GetKeyspace(keyspace)),
 		sqltypes.StringBindVariable(e.shard),
-		sqltypes.StringBindVariable(e.dbName),
+		sqltypes.StringBindVariable(e.GetDbName(keyspace)),
 		sqltypes.StringBindVariable(onlineDDL.Table),
 		sqltypes.StringBindVariable(onlineDDL.SQL),
 		sqltypes.StringBindVariable(string(onlineDDL.Strategy)),
@@ -4884,7 +4888,7 @@ func (e *Executor) VExec(ctx context.Context, vx *vexec.TabletVExec) (qr *queryp
 		// Vexec naturally runs outside shard/schema context. It does not supply values for those columns.
 		// We can fill them in.
 		vx.ReplaceInsertColumnVal("shard", vx.ToStringVal(e.shard))
-		vx.ReplaceInsertColumnVal("mysql_schema", vx.ToStringVal(e.dbName))
+		vx.ReplaceInsertColumnVal("mysql_schema", vx.ToStringVal(e.GetDbName(vx.Keyspace)))
 		vx.AddOrReplaceInsertColumnVal("tablet", vx.ToStringVal(e.TabletAliasString()))
 		e.triggerNextCheckInterval()
 		return response(e.execQuery(ctx, vx.Query))
@@ -4941,4 +4945,20 @@ func (e *Executor) VExec(ctx context.Context, vx *vexec.TabletVExec) (qr *queryp
 	default:
 		return nil, fmt.Errorf("No handler for this query: %s", vx.Query)
 	}
+}
+
+// GetKeyspace returns the keyspace name
+func (e *Executor) GetKeyspace(actualKeyspace string) string {
+	if global.ApeCloudDbDDLPlugin {
+		return actualKeyspace
+	}
+	return e.keyspace
+}
+
+// GetDbName returns the database name
+func (e *Executor) GetDbName(actualDbName string) string {
+	if global.ApeCloudDbDDLPlugin {
+		return actualDbName
+	}
+	return e.dbName
 }

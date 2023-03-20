@@ -13,7 +13,7 @@ const (
 	EmptyDbPrefix = ""
 )
 
-var ApeCloudFeaturesEnable = true
+var ApeCloudFeaturesEnable = false
 
 // Planner
 var (

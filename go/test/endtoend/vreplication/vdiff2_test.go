@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"github.com/stretchr/testify/require"
+
+	"vitess.io/vitess/go/test/endtoend/cluster"
 )
 
 type testCase struct {
@@ -325,7 +325,7 @@ func testAutoRetryError(t *testing.T, tc *testCase, cells string) {
 		// update the VDiff to simulate an ephemeral error having occurred
 		for _, shard := range strings.Split(tc.targetShards, ",") {
 			tab := vc.getPrimaryTablet(t, tc.targetKs, shard)
-			res, err := tab.QueryTabletWithDB(fmt.Sprintf(sqlSimulateError, encodeString(uuid)), global.DbPrefix+tc.targetKs)
+			res, err := tab.QueryTabletWithDB(fmt.Sprintf(sqlSimulateError, encodeString(uuid)), cluster.DbPrefix+tc.targetKs)
 			require.NoError(t, err)
 			// should have updated the vdiff record and at least one vdiff_table record
 			require.GreaterOrEqual(t, int(res.RowsAffected), 2)

@@ -25,8 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/test/endtoend/cluster"
 	tabletpb "vitess.io/vitess/go/vt/proto/topodata"
@@ -45,7 +43,7 @@ var (
 	keyspaceName                     = "ks"
 	shardName                        = "0"
 	keyspaceShard                    = "ks/" + shardName
-	dbName                           = global.DbPrefix + keyspaceName
+	dbName                           = cluster.DbPrefix + keyspaceName
 	username                         = "vt_dba"
 	cell                             = "zone1"
 	tabletHealthcheckRefreshInterval = 5 * time.Second

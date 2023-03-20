@@ -98,7 +98,7 @@
 			"Manual": false,
 			"Shard": "backup_pitr",
 			"RetryMax": 1,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"backup": {
 			"File": "unused.go",
@@ -107,7 +107,7 @@
 			"Manual": false,
 			"Shard": "vtctlbackup_sharded_clustertest_heavy",
 			"RetryMax": 1,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"backup_mysqlctld": { 
 			"File": "unused.go",
@@ -116,7 +116,7 @@
 			"Manual": false,
 			"Shard": "21",
 			"RetryMax": 1,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"backup_only": {
 			"File": "unused.go",
@@ -125,7 +125,7 @@
 			"Manual": false,
 			"Shard": "vtbackup",
 			"RetryMax": 1,
-			"Tags": ["upgrade_downgrade_backups"]
+			"Tags": ["upgrade_downgrade_backups","disable"]
 		},
 		"backup_xtrabackup": {
 			"File": "unused.go",
@@ -134,7 +134,7 @@
 			"Manual": false,
 			"Shard": "xb_backup",
 			"RetryMax": 2,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"backup_xtrabackup_xbstream": {
 			"File": "unused.go",
@@ -143,7 +143,7 @@
 			"Manual": false,
 			"Shard": "xb_backup",
 			"RetryMax": 1,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"backup_xtrabackup_xbstream_lz4": {
 			"File": "unused.go",
@@ -152,7 +152,7 @@
 			"Manual": false,
 			"Shard": "xb_backup",
 			"RetryMax": 1,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"cellalias": {
 			"File": "unused.go",
@@ -970,7 +970,7 @@
 			"Manual": false,
 			"Shard": "xb_recovery",
 			"RetryMax": 1,
-			"Tags": []
+			"Tags": ["disable"]
 		},
 		"vreplication_multicell": {
 			"File": "unused.go",

@@ -27,8 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -291,7 +289,7 @@ func testCopySchemaShardWithDifferentDB(t *testing.T, shard int) {
 	// (The different charset won't be corrected on the destination shard
 	//  because we use "CREATE DATABASE IF NOT EXISTS" and this doesn't fail if
 	//  there are differences in the options e.g. the character set.)
-	err = clusterInstance.VtctlclientProcess.ExecuteCommand("ExecuteFetchAsDba", "--", "--json", tabletAlias, "ALTER DATABASE "+global.DbPrefix+"ks CHARACTER SET latin1")
+	err = clusterInstance.VtctlclientProcess.ExecuteCommand("ExecuteFetchAsDba", "--", "--json", tabletAlias, "ALTER DATABASE "+cluster.DbPrefix+"ks CHARACTER SET latin1")
 	require.Nil(t, err)
 
 	output, err := clusterInstance.VtctlclientProcess.ExecuteCommandWithOutput("CopySchemaShard", source, fmt.Sprintf("%s/%d", keyspaceName, shard))

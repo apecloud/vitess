@@ -27,8 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/sqltypes"
 	"vitess.io/vitess/go/vt/schema"
@@ -343,7 +341,7 @@ func mysqlParams() *mysql.ConnParams {
 	evaluatedMysqlParams = &mysql.ConnParams{
 		Uname:      "vt_dba",
 		UnixSocket: path.Join(os.Getenv("VTDATAROOT"), fmt.Sprintf("/vt_%010d", getTablet().TabletUID), "/mysql.sock"),
-		DbName:     fmt.Sprintf("%s_%s", global.DbPrefix, keyspaceName),
+		DbName:     fmt.Sprintf("%s_%s", cluster.DbPrefix, keyspaceName),
 	}
 	return evaluatedMysqlParams
 }

@@ -22,8 +22,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -230,7 +228,7 @@ func TestRepairAfterTER(t *testing.T) {
 	assert.NotNil(t, curPrimary, "should have elected a primary")
 
 	// TODO(deepthi): we should not need to do this, the DB should be created automatically
-	_, err := curPrimary.VttabletProcess.QueryTablet(fmt.Sprintf("create database IF NOT EXISTS %s_%s", global.DbPrefix, keyspace.Name), keyspace.Name, false)
+	_, err := curPrimary.VttabletProcess.QueryTablet(fmt.Sprintf("create database IF NOT EXISTS %s_%s", cluster.DbPrefix, keyspace.Name), keyspace.Name, false)
 	require.NoError(t, err)
 
 	var newPrimary *cluster.Vttablet

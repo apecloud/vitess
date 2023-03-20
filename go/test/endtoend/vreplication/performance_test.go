@@ -22,8 +22,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"vitess.io/vitess/go/test/endtoend/cluster"
 
 	"github.com/stretchr/testify/require"
@@ -104,7 +102,7 @@ create table customer(cid int, name varbinary(128), meta json default null, typ 
 	for _, shard := range keyspaceTgt.Shards {
 		for _, tablet := range shard.Tablets {
 			t.Logf("catchup shard=%v, tablet=%v", shard.Name, tablet.Name)
-			tablet.Vttablet.WaitForVReplicationToCatchup(t, "stress_workflow", fmt.Sprintf("%s_%s", global.DbPrefix, tablet.Vttablet.Keyspace), 5*time.Minute)
+			tablet.Vttablet.WaitForVReplicationToCatchup(t, "stress_workflow", fmt.Sprintf("%s_%s", cluster.DbPrefix, tablet.Vttablet.Keyspace), 5*time.Minute)
 		}
 	}
 

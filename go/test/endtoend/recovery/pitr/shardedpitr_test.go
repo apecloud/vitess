@@ -23,8 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"github.com/buger/jsonparser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -63,7 +61,7 @@ var (
 	shardName      = "0"
 	shard0Name     = "-80"
 	shard1Name     = "80-"
-	dbName         = global.DbPrefix + "ks"
+	dbName         = cluster.DbPrefix + "ks"
 	mysqlUserName  = "vt_dba"
 	mysqlPassword  = "password"
 	vSchema        = `{
@@ -438,7 +436,7 @@ func initializeCluster(t *testing.T) {
 		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s';", mysqlUserName, mysqlPassword),
 		fmt.Sprintf("GRANT ALL ON *.* TO '%s'@'%%';", mysqlUserName),
 		fmt.Sprintf("GRANT GRANT OPTION ON *.* TO '%s'@'%%';", mysqlUserName),
-		fmt.Sprintf("create database %s;", global.DbPrefix+"ks"),
+		fmt.Sprintf("create database %s;", cluster.DbPrefix+"ks"),
 		"FLUSH PRIVILEGES;",
 	}
 

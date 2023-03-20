@@ -35,8 +35,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/sqltypes"
 	"vitess.io/vitess/go/vt/log"
@@ -407,8 +405,8 @@ func (vttablet *VttabletProcess) TearDownWithTimeout(timeout time.Duration) erro
 
 // CreateDB creates the database for keyspace
 func (vttablet *VttabletProcess) CreateDB(keyspace string) error {
-	_, _ = vttablet.QueryTablet(fmt.Sprintf("drop database IF EXISTS %s_%s", global.DbPrefix, keyspace), keyspace, false)
-	_, err := vttablet.QueryTablet(fmt.Sprintf("create database IF NOT EXISTS %s_%s", global.DbPrefix, keyspace), keyspace, false)
+	_, _ = vttablet.QueryTablet(fmt.Sprintf("drop database IF EXISTS %s_%s", DbPrefix, keyspace), keyspace, false)
+	_, err := vttablet.QueryTablet(fmt.Sprintf("create database IF NOT EXISTS %s_%s", DbPrefix, keyspace), keyspace, false)
 	return err
 }
 
@@ -566,7 +564,7 @@ func (vttablet *VttabletProcess) BulkLoad(t testing.TB, db, table string, bulkIn
 		t.Fatal(err)
 	}
 
-	conn, err := vttablet.defaultConn(global.DbPrefix + db)
+	conn, err := vttablet.defaultConn(DbPrefix + db)
 	if err != nil {
 		t.Fatal(err)
 	}

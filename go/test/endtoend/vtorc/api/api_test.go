@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"vitess.io/vitess/go/internal/global"
 	"vitess.io/vitess/go/test/endtoend/cluster"
 	"vitess.io/vitess/go/test/endtoend/vtorc/utils"
 )
@@ -144,7 +143,7 @@ func TestProblemsAPI(t *testing.T) {
 		assert.Equal(t, "null", resp)
 
 		// insert an errant GTID in the replica
-		_, err := utils.RunSQL(t, "insert into vt_insert_test(id, msg) values (10173, 'test 178342')", replica, global.DbPrefix+"ks")
+		_, err := utils.RunSQL(t, "insert into vt_insert_test(id, msg) values (10173, 'test 178342')", replica, cluster.DbPrefix+"ks")
 		require.NoError(t, err)
 
 		// Wait until VTOrc picks up on this errant GTID and verify

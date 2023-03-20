@@ -26,8 +26,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -256,7 +254,7 @@ func NewConnParams(port int, password, socketPath, keyspace string) mysql.ConnPa
 	}
 	cp.DbName = keyspace
 	if keyspace != "" && keyspace != "_vt" {
-		cp.DbName = global.DbPrefix + keyspace
+		cp.DbName = DbPrefix + keyspace
 	}
 
 	return cp

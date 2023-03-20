@@ -25,8 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -303,7 +301,7 @@ func tearDown(t *testing.T, initMysql bool) {
 		require.Nil(t, err)
 		_, err = tablet.VttabletProcess.QueryTablet(disableSemiSyncCommands, keyspaceName, true)
 		require.Nil(t, err)
-		for _, db := range []string{"_vt", global.DbPrefix + "insert_test"} {
+		for _, db := range []string{"_vt", cluster.DbPrefix + "insert_test"} {
 			_, err = tablet.VttabletProcess.QueryTablet(fmt.Sprintf("drop database if exists %s", db), keyspaceName, true)
 			require.Nil(t, err)
 		}

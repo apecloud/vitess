@@ -23,8 +23,6 @@ import (
 	"strconv"
 	"testing"
 
-	"vitess.io/vitess/go/internal/global"
-
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/test/endtoend/cluster"
 )
@@ -53,7 +51,7 @@ var (
 		PARTITION BY HASH( TO_DAYS(created) )
 		PARTITIONS 10;
 `
-	createProcSQL = `use ` + global.DbPrefix + `test_keyspace;
+	createProcSQL = `use ` + cluster.DbPrefix + `test_keyspace;
 CREATE PROCEDURE testing()
 BEGIN
 	delete from vt_insert_test;

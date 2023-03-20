@@ -4949,7 +4949,7 @@ func (e *Executor) VExec(ctx context.Context, vx *vexec.TabletVExec) (qr *queryp
 
 // GetKeyspace returns the keyspace name
 func (e *Executor) GetKeyspace(actualKeyspace string) string {
-	if global.ApeCloudDbDDLPlugin {
+	if global.ApeCloudDbDDLPlugin() {
 		return actualKeyspace
 	}
 	return e.keyspace
@@ -4957,7 +4957,7 @@ func (e *Executor) GetKeyspace(actualKeyspace string) string {
 
 // GetDbName returns the database name
 func (e *Executor) GetDbName(actualDbName string) string {
-	if global.ApeCloudDbDDLPlugin {
+	if global.ApeCloudDbDDLPlugin() {
 		return actualDbName
 	}
 	return e.dbName

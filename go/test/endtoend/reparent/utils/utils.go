@@ -41,7 +41,7 @@ import (
 
 var (
 	KeyspaceName = "ks"
-	dbName       = "vt_" + KeyspaceName
+	dbName       = cluster.DbPrefix + KeyspaceName
 	username     = "vt_dba"
 	Hostname     = "localhost"
 	insertVal    = 1

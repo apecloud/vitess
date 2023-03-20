@@ -97,7 +97,7 @@ CREATE TABLE allDefaults (
 }
 `
 
-	createProcSQL = `use vt_customer;
+	createProcSQL = `use ` + cluster.DbPrefix + `customer;
 CREATE PROCEDURE sp_insert()
 BEGIN
 	insert into allDefaults () values ();
@@ -386,7 +386,7 @@ func TestTempTable(t *testing.T) {
 	defer conn2.Close()
 
 	utils.AssertMatches(t, conn2, `select count(table_id) from information_schema.innodb_temp_table_info`, `[[INT64(1)]]`)
-	utils.AssertContainsError(t, conn2, `show create table temp_t`, `Table 'vt_customer.temp_t' doesn't exist (errno 1146) (sqlstate 42S02)`)
+	utils.AssertContainsError(t, conn2, `show create table temp_t`, `Table `+cluster.DbPrefix+`'customer.temp_t' doesn't exist (errno 1146) (sqlstate 42S02)`)
 }
 
 func TestReservedConnDML(t *testing.T) {

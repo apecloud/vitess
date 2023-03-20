@@ -43,7 +43,7 @@ var (
 	keyspaceName                     = "ks"
 	shardName                        = "0"
 	keyspaceShard                    = "ks/" + shardName
-	dbName                           = "vt_" + keyspaceName
+	dbName                           = cluster.DbPrefix + keyspaceName
 	username                         = "vt_dba"
 	cell                             = "zone1"
 	tabletHealthcheckRefreshInterval = 5 * time.Second

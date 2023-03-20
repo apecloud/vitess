@@ -51,7 +51,7 @@ var (
 	hostname        = "localhost"
 	keyspaceName    = "ks"
 	shardName       = "0"
-	dbName          = "vt_ks"
+	dbName          = cluster.DbPrefix + "ks"
 	mysqlUsers      = []string{"vt_dba", "vt_app", "vt_appdebug", "vt_repl", "vt_filtered"}
 	mysqlPassword   = "password"
 	vtgateUser      = "vtgate_user"

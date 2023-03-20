@@ -254,7 +254,7 @@ func NewConnParams(port int, password, socketPath, keyspace string) mysql.ConnPa
 	}
 	cp.DbName = keyspace
 	if keyspace != "" && keyspace != "_vt" {
-		cp.DbName = "vt_" + keyspace
+		cp.DbName = DbPrefix + keyspace
 	}
 
 	return cp

@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/stretchr/testify/require"
 
 	"vitess.io/vitess/go/sqltypes"
@@ -64,7 +66,7 @@ func TestVExec(t *testing.T) {
 		} else {
 			query += " where "
 		}
-		query += fmt.Sprintf("db_name = %s and workflow = %s", encodeString("vt_"+keyspace), encodeString(workflow))
+		query += fmt.Sprintf("db_name = %s and workflow = %s", encodeString(global.DbPrefix+keyspace), encodeString(workflow))
 		return query
 	}
 	want := addWheres(query)

@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -73,7 +75,7 @@ func RestoreTablet(t *testing.T, localCluster *cluster.LocalProcessCluster, tabl
 		"--init_tablet_type", "replica",
 		"--init_keyspace", restoreKSName,
 		"--init_shard", shardName,
-		"--init_db_name_override", "vt_"+keyspaceName,
+		"--init_db_name_override", global.DbPrefix+keyspaceName,
 	)
 	tablet.VttabletProcess.SupportsBackup = true
 	tablet.VttabletProcess.ExtraArgs = replicaTabletArgs

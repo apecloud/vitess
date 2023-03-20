@@ -35,6 +35,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/sqltypes"
 	"vitess.io/vitess/go/vt/log"
@@ -564,7 +566,7 @@ func (vttablet *VttabletProcess) BulkLoad(t testing.TB, db, table string, bulkIn
 		t.Fatal(err)
 	}
 
-	conn, err := vttablet.defaultConn("vt_" + db)
+	conn, err := vttablet.defaultConn(global.DbPrefix + db)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -28,6 +28,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -41,7 +43,7 @@ import (
 
 var (
 	KeyspaceName = "ks"
-	dbName       = "vt_" + KeyspaceName
+	dbName       = global.DbPrefix + KeyspaceName
 	username     = "vt_dba"
 	Hostname     = "localhost"
 	insertVal    = 1

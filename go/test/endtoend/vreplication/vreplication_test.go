@@ -27,6 +27,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	binlogdatapb "vitess.io/vitess/go/vt/proto/binlogdata"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	vtgatepb "vitess.io/vitess/go/vt/proto/vtgate"
@@ -153,10 +155,10 @@ func TestVReplicationDDLHandling(t *testing.T) {
 
 	addColDDL := fmt.Sprintf("alter table %s add column %s varchar(64)", table, newColumn)
 	dropColDDL := fmt.Sprintf("alter table %s drop column %s", table, newColumn)
-	checkColQuerySource := fmt.Sprintf("select count(column_name) from information_schema.columns where table_schema='vt_%s' and table_name='%s' and column_name='%s'",
-		sourceKs, table, newColumn)
-	checkColQueryTarget := fmt.Sprintf("select count(column_name) from information_schema.columns where table_schema='vt_%s' and table_name='%s' and column_name='%s'",
-		targetKs, table, newColumn)
+	checkColQuerySource := fmt.Sprintf("select count(column_name) from information_schema.columns where table_schema='%s_%s' and table_name='%s' and column_name='%s'",
+		global.DbPrefix, sourceKs, table, newColumn)
+	checkColQueryTarget := fmt.Sprintf("select count(column_name) from information_schema.columns where table_schema='%s_%s' and table_name='%s' and column_name='%s'",
+		global.DbPrefix, targetKs, table, newColumn)
 
 	// Test IGNORE behavior
 	moveTablesAction(t, "Create", defaultCellName, workflow, sourceKs, targetKs, table, "--on-ddl=IGNORE")
@@ -1309,7 +1311,7 @@ func waitForLowLag(t *testing.T, keyspace, workflow string) {
 }
 
 func catchup(t *testing.T, vttablet *cluster.VttabletProcess, workflow, info string) {
-	vttablet.WaitForVReplicationToCatchup(t, workflow, fmt.Sprintf("vt_%s", vttablet.Keyspace), maxWait)
+	vttablet.WaitForVReplicationToCatchup(t, workflow, fmt.Sprintf("%s_%s", global.DbPrefix, vttablet.Keyspace), maxWait)
 }
 
 func moveTablesAction(t *testing.T, action, cell, workflow, sourceKs, targetKs, tables string, extraFlags ...string) {

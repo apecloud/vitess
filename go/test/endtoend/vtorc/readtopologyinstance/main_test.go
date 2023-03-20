@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
 	"vitess.io/vitess/go/test/endtoend/cluster"
 	"vitess.io/vitess/go/test/endtoend/vtorc/utils"
 	"vitess.io/vitess/go/vt/servenv"
@@ -105,7 +106,7 @@ func TestReadTopologyInstanceBufferable(t *testing.T) {
 	assert.Equal(t, primaryInstance.ReplicationSQLThreadState, inst.ReplicationThreadStateNoThread)
 
 	// insert an errant GTID in the replica
-	_, err = utils.RunSQL(t, "insert into vt_insert_test(id, msg) values (10173, 'test 178342')", replica, "vt_ks")
+	_, err = utils.RunSQL(t, "insert into vt_insert_test(id, msg) values (10173, 'test 178342')", replica, global.DbPrefix+"ks")
 	require.NoError(t, err)
 
 	replicaInstance, err := inst.ReadTopologyInstanceBufferable(&inst.InstanceKey{

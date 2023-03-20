@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -104,7 +106,7 @@ func TestHealthCheck(t *testing.T) {
 	defer replicaConn.Close()
 
 	// Create database in mysql
-	utils.Exec(t, replicaConn, fmt.Sprintf("create database vt_%s", keyspaceName))
+	utils.Exec(t, replicaConn, fmt.Sprintf("create database %s_%s", global.DbPrefix, keyspaceName))
 
 	// start vttablet process, should be in SERVING state as we already have a primary
 	err = clusterInstance.StartVttablet(rTablet, "SERVING", false, cell, keyspaceName, hostname, shardName)

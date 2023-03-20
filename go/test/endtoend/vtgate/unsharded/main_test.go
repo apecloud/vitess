@@ -23,6 +23,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"vitess.io/vitess/go/test/endtoend/utils"
 
 	"vitess.io/vitess/go/vt/log"
@@ -97,7 +99,7 @@ CREATE TABLE allDefaults (
 }
 `
 
-	createProcSQL = `use vt_customer;
+	createProcSQL = `use ` + global.DbPrefix + `customer;
 CREATE PROCEDURE sp_insert()
 BEGIN
 	insert into allDefaults () values ();

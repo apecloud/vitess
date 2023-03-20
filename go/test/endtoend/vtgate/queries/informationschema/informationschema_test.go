@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"testing"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"vitess.io/vitess/go/test/endtoend/utils"
 
 	"github.com/stretchr/testify/assert"
@@ -64,7 +66,7 @@ func TestDbNameOverride(t *testing.T) {
 
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(qr.Rows), "did not get enough rows back")
-	assert.Equal(t, "vt_ks", qr.Rows[0][0].ToString())
+	assert.Equal(t, global.DbPrefix+"ks", qr.Rows[0][0].ToString())
 }
 
 func TestInformationSchemaQuery(t *testing.T) {
@@ -74,15 +76,15 @@ func TestInformationSchemaQuery(t *testing.T) {
 	mcmp, closer := start(t)
 	defer closer()
 
-	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'ks'", "vt_ks")
-	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'vt_ks'", "vt_ks")
+	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'ks'", global.DbPrefix+"ks")
+	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = '"+global.DbPrefix+"ks'", global.DbPrefix+"ks")
 	utils.AssertResultIsEmpty(t, mcmp.VtConn, "table_schema = 'NONE'")
 	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'performance_schema'", "performance_schema")
 	utils.AssertResultIsEmpty(t, mcmp.VtConn, "table_schema = 'PERFORMANCE_SCHEMA'")
 	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'performance_schema' and table_name = 'users'", "performance_schema")
 	utils.AssertResultIsEmpty(t, mcmp.VtConn, "table_schema = 'performance_schema' and table_name = 'foo'")
-	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'vt_ks' and table_name = 't1'", "vt_ks")
-	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'ks' and table_name = 't1'", "vt_ks")
+	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = '"+global.DbPrefix+"ks' and table_name = 't1'", global.DbPrefix+"ks")
+	utils.AssertSingleRowIsReturned(t, mcmp.VtConn, "table_schema = 'ks' and table_name = 't1'", global.DbPrefix+"ks")
 }
 
 func TestInformationSchemaWithSubquery(t *testing.T) {

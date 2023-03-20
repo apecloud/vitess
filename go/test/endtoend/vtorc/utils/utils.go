@@ -26,6 +26,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -320,7 +322,7 @@ func cleanAndStartVttablet(t *testing.T, clusterInfo *VTOrcClusterInfo, vttablet
 	_, err := RunSQL(t, "SET GLOBAL super_read_only = OFF", vttablet, "")
 	require.NoError(t, err)
 	// remove the databases if they exist
-	_, err = RunSQL(t, "DROP DATABASE IF EXISTS vt_ks", vttablet, "")
+	_, err = RunSQL(t, "DROP DATABASE IF EXISTS "+global.DbPrefix+"ks", vttablet, "")
 	require.NoError(t, err)
 	_, err = RunSQL(t, "DROP DATABASE IF EXISTS _vt", vttablet, "")
 	require.NoError(t, err)
@@ -415,7 +417,7 @@ func CheckReplication(t *testing.T, clusterInfo *VTOrcClusterInfo, primary *clus
 	endTime := time.Now().Add(timeToWait)
 	// create tables, insert data and make sure it is replicated correctly
 	sqlSchema := `
-		create table if not exists vt_ks.vt_insert_test (
+		create table if not exists ` + global.DbPrefix + `ks.vt_insert_test (
 		id bigint,
 		msg varchar(64),
 		primary key (id)
@@ -425,7 +427,7 @@ func CheckReplication(t *testing.T, clusterInfo *VTOrcClusterInfo, primary *clus
 	for {
 		select {
 		case <-timeout:
-			t.Fatal("timedout waiting for keyspace vt_ks to be created by schema engine")
+			t.Fatal("timedout waiting for keyspace " + global.DbPrefix + "ks to be created by schema engine")
 			return
 		default:
 			_, err := RunSQL(t, sqlSchema, primary, "")
@@ -455,7 +457,7 @@ func confirmReplication(t *testing.T, primary *cluster.Vttablet, replicas []*clu
 	log.Infof("Insert data into primary and check that it is replicated to replica")
 	// insert data into the new primary, check the connected replica work
 	insertSQL := fmt.Sprintf("insert into vt_insert_test(id, msg) values (%d, 'test %d')", valueToInsert, valueToInsert)
-	_, err := RunSQL(t, insertSQL, primary, "vt_ks")
+	_, err := RunSQL(t, insertSQL, primary, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 	timeout := time.After(timeToWait)
@@ -483,7 +485,7 @@ func confirmReplication(t *testing.T, primary *cluster.Vttablet, replicas []*clu
 }
 
 func checkInsertedValues(t *testing.T, tablet *cluster.Vttablet, index int) error {
-	selectSQL := fmt.Sprintf("select msg from vt_ks.vt_insert_test where id=%d", index)
+	selectSQL := fmt.Sprintf("select msg from "+global.DbPrefix+"ks.vt_insert_test where id=%d", index)
 	qr, err := RunSQL(t, selectSQL, tablet, "")
 	// The error may be not nil, if the replication has not caught upto the point where the table exists.
 	// We can safely skip this error and retry reading after wait

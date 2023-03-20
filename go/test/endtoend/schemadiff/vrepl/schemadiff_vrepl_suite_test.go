@@ -26,6 +26,8 @@ import (
 	"strings"
 	"testing"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -438,7 +440,7 @@ func mysqlParams() *mysql.ConnParams {
 	evaluatedMysqlParams = &mysql.ConnParams{
 		Uname:      "vt_dba",
 		UnixSocket: path.Join(os.Getenv("VTDATAROOT"), fmt.Sprintf("/vt_%010d", getTablet().TabletUID), "/mysql.sock"),
-		DbName:     fmt.Sprintf("vt_%s", keyspaceName),
+		DbName:     fmt.Sprintf("%s_%s", global.DbPrefix, keyspaceName),
 	}
 	return evaluatedMysqlParams
 }

@@ -36,6 +36,8 @@ import (
 	"testing"
 	"time"
 
+	"vitess.io/vitess/go/internal/global"
+
 	"vitess.io/vitess/go/json2"
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/sqltypes"
@@ -546,7 +548,7 @@ func (cluster *LocalProcessCluster) StartKeyspaceLegacy(keyspace Keyspace, shard
 		}
 		for _, tablet := range shard.Vttablets {
 			if !cluster.ReusingVTDATAROOT {
-				if _, err = tablet.VttabletProcess.QueryTablet(fmt.Sprintf("create database vt_%s", keyspace.Name), keyspace.Name, false); err != nil {
+				if _, err = tablet.VttabletProcess.QueryTablet(fmt.Sprintf("create database %s_%s", global.DbPrefix, keyspace.Name), keyspace.Name, false); err != nil {
 					log.Errorf("error creating database for keyspace %v: %v", keyspace.Name, err)
 					return
 				}

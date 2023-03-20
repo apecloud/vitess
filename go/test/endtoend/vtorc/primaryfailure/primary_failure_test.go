@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"vitess.io/vitess/go/internal/global"
 	"vitess.io/vitess/go/test/endtoend/cluster"
 	"vitess.io/vitess/go/test/endtoend/vtorc/utils"
 	"vitess.io/vitess/go/vt/vtorc/logic"
@@ -228,10 +229,10 @@ func TestLostRdonlyOnPrimaryFailure(t *testing.T) {
 	utils.VerifyWritesSucceed(t, clusterInfo, curPrimary, []*cluster.Vttablet{aheadRdonly}, 15*time.Second)
 
 	// assert that the replica and rdonly are indeed lagging and do not have the new insertion by checking the count of rows in the tables
-	out, err := utils.RunSQL(t, "SELECT * FROM vt_insert_test", replica, "vt_ks")
+	out, err := utils.RunSQL(t, "SELECT * FROM vt_insert_test", replica, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out.Rows))
-	out, err = utils.RunSQL(t, "SELECT * FROM vt_insert_test", rdonly, "vt_ks")
+	out, err = utils.RunSQL(t, "SELECT * FROM vt_insert_test", rdonly, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out.Rows))
 
@@ -460,7 +461,7 @@ func TestDownPrimaryPromotionRuleWithLag(t *testing.T) {
 	utils.ChangePrivileges(t, `GRANT SUPER ON *.* TO 'orc_client_user'@'%'`, crossCellReplica, "orc_client_user")
 
 	// assert that the crossCellReplica is indeed lagging and does not have the new insertion by checking the count of rows in the table
-	out, err := utils.RunSQL(t, "SELECT * FROM vt_insert_test", crossCellReplica, "vt_ks")
+	out, err := utils.RunSQL(t, "SELECT * FROM vt_insert_test", crossCellReplica, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out.Rows))
 
@@ -476,7 +477,7 @@ func TestDownPrimaryPromotionRuleWithLag(t *testing.T) {
 	utils.CheckPrimaryTablet(t, clusterInfo, crossCellReplica, true)
 
 	// assert that the crossCellReplica has indeed caught up
-	out, err = utils.RunSQL(t, "SELECT * FROM vt_insert_test", crossCellReplica, "vt_ks")
+	out, err = utils.RunSQL(t, "SELECT * FROM vt_insert_test", crossCellReplica, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	require.Equal(t, 2, len(out.Rows))
 
@@ -540,7 +541,7 @@ func TestDownPrimaryPromotionRuleWithLagCrossCenter(t *testing.T) {
 	utils.ChangePrivileges(t, `GRANT SUPER ON *.* TO 'orc_client_user'@'%'`, replica, "orc_client_user")
 
 	// assert that the replica is indeed lagging and does not have the new insertion by checking the count of rows in the table
-	out, err := utils.RunSQL(t, "SELECT * FROM vt_insert_test", replica, "vt_ks")
+	out, err := utils.RunSQL(t, "SELECT * FROM vt_insert_test", replica, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out.Rows))
 
@@ -556,7 +557,7 @@ func TestDownPrimaryPromotionRuleWithLagCrossCenter(t *testing.T) {
 	utils.CheckPrimaryTablet(t, clusterInfo, replica, true)
 
 	// assert that the replica has indeed caught up
-	out, err = utils.RunSQL(t, "SELECT * FROM vt_insert_test", replica, "vt_ks")
+	out, err = utils.RunSQL(t, "SELECT * FROM vt_insert_test", replica, global.DbPrefix+"ks")
 	require.NoError(t, err)
 	require.Equal(t, 2, len(out.Rows))
 

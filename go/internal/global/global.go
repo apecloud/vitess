@@ -18,7 +18,7 @@ var ApeCloudFeaturesEnable = false
 // Planner
 var (
 	ApeCloudDbDDLPlugin = ApeCloudFeaturesEnable
-	UnshardEnabled      = ApeCloudFeaturesEnable
+	UnshardEnabled      = true
 	DbPrefix            = func() string {
 		if ApeCloudDbDDLPlugin {
 			return EmptyDbPrefix

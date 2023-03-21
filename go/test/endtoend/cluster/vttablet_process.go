@@ -124,7 +124,7 @@ func (vttablet *VttabletProcess) Setup() (err error) {
 	}
 
 	vttablet.proc.Args = append(vttablet.proc.Args, vttablet.ExtraArgs...)
-	vttablet.proc.Args = append(vttablet.proc.Args, "--ape_cloud_features_enable=false")
+	vttablet.proc.Args = append(vttablet.proc.Args, "--ape_cloud_features_enable=true")
 	fname := path.Join(vttablet.LogDir, vttablet.TabletPath+"-vttablet-stderr.txt")
 	errFile, _ := os.Create(fname)
 	vttablet.proc.Stderr = errFile
